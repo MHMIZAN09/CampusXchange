@@ -1,0 +1,24 @@
+model StudentProfile {
+  id     String @id @default(uuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  fullName    String
+  studentId   String  @unique
+  gender      Gender?
+  university  String?
+  department  String?
+  batch       String?
+  phoneNumber String?
+  profileUrl  String?
+  bio         String?
+
+  verificationStatus VerificationStatus @default(PENDING)
+  verifiedAt         DateTime?
+  campusLocation     String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("student_profiles")
+}

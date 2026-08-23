@@ -5,8 +5,8 @@ model StudentProfile {
 
   fullName    String
   studentId   String  @unique
-  gender      Gender?
-  university  String?
+  gender      Gender
+  university  String
   department  String?
   batch       String?
   phoneNumber String?

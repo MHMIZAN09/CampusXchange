@@ -6,10 +6,7 @@ const router = Router()
 
 router.post('/register', authController.registerStudent);
 
-router.post('/login', (req, res) => {
-  // Handle login logic here
-  res.send('Login endpoint');
-});
+router.post('/login', authController.loginStudent);
 
 
 router.post("/email-verify", (req, res) => {

@@ -1,9 +1,10 @@
 import bcrypt from 'bcryptjs';
 
+import { type SignOptions } from "jsonwebtoken";
 import { config } from '../../config';
 import { prisma } from '../../lib/prisma';
-
-import type { IStudentRegisterPayload } from './auth.interface';
+import { jwtUtils } from '../../utils/jwt';
+import type { IStudentLoginPayload, IStudentRegisterPayload } from './auth.interface';
 
 const registerStudentFromDB = async (
   payload: IStudentRegisterPayload
@@ -53,6 +54,52 @@ const registerStudentFromDB = async (
   return newUser;
 };
 
+
+const loginStudentFromDB = async (payload: IStudentLoginPayload) => {
+  const { password } = payload;
+
+  const email = payload.email.trim().toLowerCase();
+
+  const user = await prisma.user.findUnique({
+    where: { email },
+  });
+
+  if (!user) {
+    throw new Error('User not found');
+  }
+  if (user.status === "BLOCKED" || user.status === "SUSPENDED") {
+    throw new Error('User is blocked or suspended.');
+  }
+  const isPasswordMatch = await bcrypt.compare(password, user.password);
+  if (!isPasswordMatch) {
+    throw new Error('Invalid password. Please try again.');
+  }
+
+
+  const jwtPayload = {
+    userId: user.id,
+    email: user.email,
+    role: user.role,
+  }
+
+  const accessToken = jwtUtils.createToken(
+    jwtPayload,
+    config.jwtAccessTokenSecret,
+    config.jwtAccessTokenExpiresIn as SignOptions,
+  );
+
+  const refreshToken = jwtUtils.createToken(
+    jwtPayload,
+    config.jwtRefreshTokenSecret,
+    config.jwtRefreshTokenExpiresIn as SignOptions,
+  );
+  return {
+    accessToken,
+    refreshToken,
+  };
+}
+
 export const authService = {
   registerStudentFromDB,
+  loginStudentFromDB,
 };
